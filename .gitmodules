@@ -22,3 +22,6 @@
 [submodule "uchardet"]
 	path = uchardet
 	url = https://gitlab.freedesktop.org/uchardet/uchardet.git
+[submodule "libjpeg-turbo"]
+	path = libjpeg-turbo
+	url = https://github.com/libjpeg-turbo/libjpeg-turbo.git

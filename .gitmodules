@@ -10,3 +10,6 @@
 [submodule "libwebp"]
 	path = libwebp
 	url = https://github.com/webmproject/libwebp.git
+[submodule "mpv"]
+	path = mpv
+	url = https://github.com/mpv-player/mpv.git

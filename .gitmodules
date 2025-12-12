@@ -7,3 +7,6 @@
 [submodule "dav1d"]
 	path = dav1d
 	url = https://github.com/videolan/dav1d.git
+[submodule "libwebp"]
+	path = libwebp
+	url = https://github.com/webmproject/libwebp.git

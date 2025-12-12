@@ -13,3 +13,6 @@
 [submodule "mpv"]
 	path = mpv
 	url = https://github.com/mpv-player/mpv.git
+[submodule "libplacebo"]
+	path = libplacebo
+	url = https://code.videolan.org/videolan/libplacebo.git

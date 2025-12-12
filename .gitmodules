@@ -4,3 +4,6 @@
 [submodule "sdl2"]
 	path = sdl2
 	url = https://github.com/libsdl-org/SDL.git
+[submodule "dav1d"]
+	path = dav1d
+	url = https://github.com/videolan/dav1d.git

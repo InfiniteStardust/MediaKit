@@ -28,3 +28,6 @@
 [submodule "libass"]
 	path = libass
 	url = https://github.com/libass/libass.git
+[submodule "harfbuzz"]
+	path = harfbuzz
+	url = https://github.com/harfbuzz/harfbuzz.git

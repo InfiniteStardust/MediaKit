@@ -34,3 +34,6 @@
 [submodule "freetype"]
 	path = freetype
 	url = https://github.com/freetype/freetype.git
+[submodule "fribidi"]
+	path = fribidi
+	url = https://github.com/fribidi/fribidi.git

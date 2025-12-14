@@ -1,0 +1,39 @@
+From 00415f1457a8a2b6c2443b0d585926483feb58b7 Mon Sep 17 00:00:00 2001
+From: der richter <der.richter@gmx.de>
+Date: Sun, 7 Sep 2025 15:03:39 +0200
+Subject: [PATCH] osdep/mac/meson: fallback to swift build for old swift
+ versions
+
+with commit 8d20b72 and PR #15442 we switched to the recommended swiftc
+compiler for building our swift code. this lead to some
+incompatibilities with swift versions prior to 5.8, where a new linker
+was introduced.
+
+work around that problem by using the old swift frontend build for older
+swift versions. this can be removed when we remove the support for those
+old versions.
+
+Fixes #15591
+---
+ osdep/mac/meson.build | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/osdep/mac/meson.build b/osdep/mac/meson.build
+index d886e5406a03ad2d46171aba5fb4c56840aac4a8..16605288419c54cb9d89680a6fafd6a2f315487e 100644
+--- a/osdep/mac/meson.build
++++ b/osdep/mac/meson.build
+@@ -5,6 +5,14 @@ module = join_paths(build_root, 'osdep/mac/swift.swiftmodule')
+ swift_flags = ['-c', '-emit-library', '-static', '-sdk', macos_sdk_path,
+                '-emit-objc-header', '-parse-as-library']
+
++# fallback to old swift frontend build
++if swift_ver.version_compare('<5.8')
++    message('Falling back to old swift frontend build')
++    swift_prog = find_program(run_command(xcrun, '-find', 'swift', check: true).stdout().strip())
++    swift_flags = ['-frontend', '-c', '-sdk', macos_sdk_path,
++                   '-enable-objc-interop', '-emit-objc-header', '-parse-as-library']
++endif
++
+ if swift_ver.version_compare('>=6.0')
+     swift_flags += ['-swift-version', '5']
+ endif

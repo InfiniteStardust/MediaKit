@@ -1,0 +1,227 @@
+version: "3"
+
+vars:
+  PREFIX: "{{.ROOT_DIR}}/dist"
+
+env:
+  MACOSX_DEPLOYMENT_TARGET: "12.0"
+  CFLAGS: "-I{{.PREFIX}}/include"
+  CPPFLAGS: "-I{{.PREFIX}}/include"
+  LDFLAGS: "-L{{.PREFIX}}/lib"
+  PKG_CONFIG_PATH: "{{.PREFIX}}/lib/pkgconfig"
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmd: task --list-all
+
+  build-all:
+    desc: Build all dependencies
+    cmds:
+      - task: prepare
+      - task: libjpeg-turbo
+      - task: little-cms2
+      - task: fribidi
+      - task: freetype
+      - task: harfbuzz
+      - task: libass
+      - task: uchardet
+      - task: libplacebo
+      - task: sdl2
+      - task: dav1d
+      - task: libwebp
+      - task: opus
+      - task: ffmpeg
+      - task: mpv
+      - task: post-setup
+
+  prepare:
+    desc: Prepare the build environment
+    cmds:
+      - mkdir -p {{.PREFIX}}
+      - brew install make automake libtool pkg-config cmake meson ninja
+      - brew uninstall --ignore-dependencies libx11 libxcb libxau libxdmcp || true  # Remove unwanted dependencies
+
+  post-setup:
+    desc: Post setup steps
+    cmds:
+      - ./portable-fix.sh
+
+  libjpeg-turbo:
+    dir: ./libjpeg-turbo
+    cmds:
+      - >-
+        cmake -S . -B build
+        -DCMAKE_INSTALL_PREFIX={{.PREFIX}}
+        -DCMAKE_BUILD_TYPE=Release
+        -DBUILD_SHARED_LIBS=ON
+      - cmake --build build --config Release -- -j{{numCPU}} install
+
+  little-cms2:
+    dir: ./little-cms2
+    cmds:
+      - >-
+        meson setup --wipe build
+        --prefix={{.PREFIX}}
+        --buildtype=release
+        -Ddefault_library=shared
+      - ninja -C build install
+
+  sdl2:
+    dir: ./sdl2
+    cmds:
+      - ./configure --prefix={{.PREFIX}} --disable-static --enable-shared
+      - make -j{{numCPU}} install
+
+  fribidi:
+    dir: ./fribidi
+    cmds:
+      - >-
+        meson setup --wipe build
+        --prefix={{.PREFIX}}
+        --buildtype=release
+        -Ddefault_library=shared
+        -Ddocs=false
+      - ninja -C build install
+
+  freetype:
+    dir: ./freetype
+    cmds:
+      - >-
+        meson setup --wipe build
+        --prefix={{.PREFIX}}
+        --buildtype=release
+        -Ddefault_library=shared
+        -Dbzip2=disabled
+        -Dpng=disabled
+        -Dharfbuzz=disabled
+        -Dbrotli=disabled
+      - ninja -C build install
+
+  harfbuzz:
+    dir: ./harfbuzz
+    cmds:
+      - >-
+        meson setup --wipe build
+        --prefix={{.PREFIX}}
+        --buildtype=release
+        -Ddefault_library=shared
+        -Dcoretext=enabled
+        -Dfreetype=enabled
+        -Dicu=disabled
+        -Dglib=disabled
+        -Dcairo=disabled
+        -Dgobject=disabled
+        -Dtests=disabled
+      - ninja -C build install
+
+  libass:
+    dir: ./libass
+    cmds:
+      - ./autogen.sh
+      - >-
+        ./configure
+        --prefix={{.PREFIX}}
+        --disable-static
+        --enable-shared
+        --disable-libunibreak
+        --disable-fontconfig
+      - make -j{{numCPU}} install
+
+  uchardet:
+    dir: ./uchardet
+    cmds:
+      - >-
+        cmake -S . -B build
+        -DCMAKE_INSTALL_PREFIX={{.PREFIX}}
+        -DCMAKE_BUILD_TYPE=Release
+        -DBUILD_SHARED_LIBS=ON
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+      - cmake --build build --config Release -- -j{{numCPU}} install
+
+  libplacebo:
+    dir: ./libplacebo
+    cmds:
+      - >-
+        meson setup --wipe build
+        --prefix={{.PREFIX}}
+        --buildtype=release
+        --default-library=shared
+        -Dlcms=disabled
+        -Ddovi=disabled
+        -Dshaderc=disabled
+        -Dopengl=enabled
+        -Dvulkan=disabled
+      - ninja -C build install
+
+  dav1d:
+    dir: ./dav1d
+    cmds:
+      - >-
+        meson setup --wipe build
+        --prefix={{.PREFIX}}
+        --buildtype=release
+        --default-library=shared
+      - ninja -C build install
+
+  libwebp:
+    dir: ./libwebp
+    cmds:
+      - autoreconf -fiv
+      - ./configure --prefix={{.PREFIX}} --disable-static --enable-shared --enable-neon
+      - make -j{{numCPU}} install
+
+  opus:
+    dir: ./opus
+    cmds:
+      - ./autogen.sh
+      - ./configure --prefix={{.PREFIX}} --disable-static --enable-shared
+      - make -j{{numCPU}} install
+
+  ffmpeg:
+    dir: ./ffmpeg
+    cmds:
+      - >-
+        ./configure
+        --prefix={{.PREFIX}}
+        --pkg-config-flags="--static"
+        --enable-shared
+        --disable-static
+        --disable-gpl
+        --disable-nonfree
+        --disable-version3
+        --disable-doc
+        --disable-network
+        --disable-libxcb
+        --enable-neon
+        --enable-videotoolbox
+        --enable-audiotoolbox
+        --enable-pthreads
+        --enable-iconv
+        --enable-optimizations
+        --enable-sdl2
+        --enable-libdav1d
+        --enable-libwebp
+        --enable-libopus
+        --enable-libfribidi
+        --enable-libfreetype
+        --enable-libharfbuzz
+        --enable-libass
+      - make -j{{numCPU}} install
+
+  mpv:
+    dir: ./mpv
+    cmds:
+      - git apply ../mpv-patches/*.patch || true
+      - >-
+        meson setup --wipe build
+        --prefix={{.PREFIX}}
+        --buildtype=release
+        --default-library=shared
+        -Dd3d11=disabled
+        -Djavascript=disabled
+        -Dlua=disabled
+        -Dvulkan=disabled
+        -Dwayland=disabled
+        -Dx11=disabled
+      - ninja -C build install

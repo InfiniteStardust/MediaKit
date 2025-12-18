@@ -47,11 +47,11 @@ for lib_path in "$LIB_DIR"/*.dylib; do
   for dep in $dependencies; do
     dep_name=$(basename "$dep")
 
-    # If the dependency is one of our libraries, change its path to @rpath
+    # If the dependency is one of our libraries, change its path to @loader_path
     if is_my_lib "$dep_name"; then
-      if [[ "$dep" != @rpath* ]]; then
-        echo "      -> Redirecting dependency: $dep_name -> @rpath/$dep_name"
-        install_name_tool -change "$dep" "@rpath/$dep_name" "$lib_path"
+      if [[ "$dep" != @loader_path* ]]; then
+        echo "      -> Redirecting dependency: $dep_name -> @loader_path/$dep_name"
+        install_name_tool -change "$dep" "@loader_path/$dep_name" "$lib_path"
       fi
     fi
   done
@@ -92,6 +92,12 @@ for bin_path in "$BIN_DIR"/*; do
 
   # 2.2 Inject RPATH (first remove old ones to avoid duplicates, or simply add new ones)
   # Here we adopt a "try to add" strategy; for more rigor, you can first check if it exists
+
+  # Inject cwd path
+  if ! otool -l "$bin_path" | grep -q '\.\/'; then
+    echo "      -> Adding RPATH: ."
+    install_name_tool -add_rpath "." "$bin_path"
+  fi
 
   # Inject test environment path
   if ! otool -l "$bin_path" | grep -q "$RPATH_TEST"; then

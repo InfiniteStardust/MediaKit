@@ -93,10 +93,10 @@ for bin_path in "$BIN_DIR"/*; do
   # 2.2 Inject RPATH (first remove old ones to avoid duplicates, or simply add new ones)
   # Here we adopt a "try to add" strategy; for more rigor, you can first check if it exists
 
-  # Inject cwd path
-  if ! otool -l "$bin_path" | grep -q '\.\/'; then
-    echo "      -> Adding RPATH: ."
-    install_name_tool -add_rpath "." "$bin_path"
+  # Inject @loader_path RPATH
+  if ! otool -l "$bin_path" | grep -q '@loader_path'; then
+    echo "      -> Adding RPATH: @loader_path"
+    install_name_tool -add_rpath "@loader_path" "$bin_path"
   fi
 
   # Inject test environment path
